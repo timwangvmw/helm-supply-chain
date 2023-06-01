@@ -28,21 +28,28 @@ This CRD is provided as part of the FluxCD Helm Controller.
 
 FluxCD Helm Controller can be easily installed from the Tanzu Community Edition package via the following commands:
 
+1. Install Imgkpkg Bundle
 ```bash
 docker load -i fluxcd-helm-controller/images/imgpkgBundle.tar
-docker tag dbf594e50e25 {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2
+docker tag dbf594e50e25 {harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2
 docker push {harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2
-imgpkg pull -b {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 -o fluxcd-helm-controller/controller-yaml
-vi fluxcd-helm-controller/controller-yaml/.imgpkg/images.yml  # modidy image to the real one !!!!! with digest form not tag form !!!!
+imgpkg pull -b {harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 -o fluxcd-helm-controller/controller-yaml
+# modidy image to the real one !!!!! with digest form not tag form !!!!
+vi fluxcd-helm-controller/controller-yaml/.imgpkg/images.yml  
 imgpkg push -b {harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 -f fluxcd-helm-controller/controller-yaml
-
+```
+2. Push Controller
+```bash
 docker load -i 
 docker tag 641a4d6fd686 {harbor-url}/{project-name}/fluxcd-helm-controller:0.17.2
 docker push {harbor-url}/{project-name}/fluxcd-helm-controller:0.17.2
-
+```
+3. Install Controller
+```bash
 kubectl create ns tap-extra-packages
 
-vi fluxcd-helm-controller/metadata.yaml # modidy {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 to the real one..
+# modidy {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 to the real one..
+vi fluxcd-helm-controller/metadata.yaml 
 
 # kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/community-edition/main/addons/packages/fluxcd-helm-controller/metadata.yaml -n tanzu-package-repo-global
 kubectl apply -f fluxcd-helm-controller/metadata.yaml
