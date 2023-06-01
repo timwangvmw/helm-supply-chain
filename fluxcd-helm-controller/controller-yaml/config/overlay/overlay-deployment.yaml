@@ -1,0 +1,16 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.subset({"kind": "Deployment", "metadata": {"name": "helm-controller"}})
+---
+spec:
+  template:
+    spec:
+      containers:
+        #@overlay/match by="name"
+        - name: manager
+          image: #@ "fluxcd/helm-controller:" + "v0.17.2"
+          resources:
+            limits:
+              cpu: #@ data.values.limits_cpu
+              memory: #@ data.values.limits_memory

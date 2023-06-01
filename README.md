@@ -29,9 +29,27 @@ This CRD is provided as part of the FluxCD Helm Controller.
 FluxCD Helm Controller can be easily installed from the Tanzu Community Edition package via the following commands:
 
 ```bash
+docker load -i fluxcd-helm-controller/images/imgpkgBundle.tar
+docker tag dbf594e50e25 {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2
+docker push {harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2
+imgpkg pull -b {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 -o fluxcd-helm-controller/controller-yaml
+vi fluxcd-helm-controller/controller-yaml/.imgpkg/images.yml  # modidy image to the real one !!!!! with digest form not tag form !!!!
+imgpkg push -b {harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 -f fluxcd-helm-controller/controller-yaml
+
+docker load -i 
+docker tag 641a4d6fd686 {harbor-url}/{project-name}/fluxcd-helm-controller:0.17.2
+docker push {harbor-url}/{project-name}/fluxcd-helm-controller:0.17.2
+
 kubectl create ns tap-extra-packages
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/community-edition/main/addons/packages/fluxcd-helm-controller/metadata.yaml -n tanzu-package-repo-global
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/community-edition/main/addons/packages/fluxcd-helm-controller/0.17.2/package.yaml -n tap-extra-packages
+
+vi fluxcd-helm-controller/metadata.yaml # modidy {mega-harbor-url}/{project-name}/fluxcd-helm-controller-bundle:0.17.2 to the real one..
+
+# kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/community-edition/main/addons/packages/fluxcd-helm-controller/metadata.yaml -n tanzu-package-repo-global
+kubectl apply -f fluxcd-helm-controller/metadata.yaml
+
+# kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/community-edition/main/addons/packages/fluxcd-helm-controller/0.17.2/package.yaml -n tap-extra-packages
+kubectl apply -f fluxcd-helm-controller/package.yaml
+
 tanzu package install -n tap-extra-packages fluxcd-helm-controller -p helm-controller.fluxcd.community.tanzu.vmware.com -v 0.17.2
 ```
 

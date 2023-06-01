@@ -1,0 +1,26 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.subset({"kind": "CustomResourceDefinition"}), expects=1
+---
+metadata:
+  annotations:
+    #@overlay/match missing_ok=True
+    controller-gen.kubebuilder.io/version: v0.7.0
+
+#@overlay/match by=overlay.subset({"kind": "Deployment", "metadata": {"name": "helm-controller"}})
+---
+spec:
+  selector:
+    matchLabels:
+      #@overlay/match missing_ok=True
+      app: helm-controller
+  template:
+    metadata:
+      labels:
+        #@overlay/match missing_ok=True
+        app: helm-controller
+      annotations:
+        #@overlay/match missing_ok=True
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"

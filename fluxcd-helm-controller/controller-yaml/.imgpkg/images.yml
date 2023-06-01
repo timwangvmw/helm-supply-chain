@@ -1,0 +1,11 @@
+---
+apiVersion: imgpkg.carvel.dev/v1alpha1
+images:
+- annotations:
+    kbld.carvel.dev/id: fluxcd/helm-controller:v0.17.2
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: v0.17.2
+          url: fluxcd/helm-controller:v0.17.2
+  image: index.docker.io/fluxcd/helm-controller@sha256:14142a33c57db09c33529728c3d080f600ca30d87863d30384ab2c99a69e24d7
+kind: ImagesLock
