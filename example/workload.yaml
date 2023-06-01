@@ -3,8 +3,9 @@ kind: Workload
 metadata:
   labels:
     app.kubernetes.io/part-of: helm-demo-app
+    apps.tanzu.vmware.com/has-tests: "true"
   name: helm-demo-app
-  namespace: default
+  namespace: tap-sit
 spec:
   source:
     git:
@@ -13,15 +14,17 @@ spec:
       url: https://github.com/sample-accelerators/tanzu-java-web-app
   params:
   - name: chart_name
-    value: java-web-app
+    value: tap
   - name: chart_values
     value:
-      autoscaling:
-        enabled: true
-        minReplicas: 3
-      service:
-        type: LoadBalancer
+      workloadname: helm-demo-app
   - name: chart_repo
     value:
       kind: HelmRepository
-      name: demo-repo
+      name: timwang-github
+  - name: testing_pipeline_matching_labels
+    value:
+      apps.tanzu.vmware.com/pipeline: vmware-approvaltask
+  - name: integration_testing_matching_labels
+    value:
+      apps.tanzu.vmware.com/pipeline: int-test

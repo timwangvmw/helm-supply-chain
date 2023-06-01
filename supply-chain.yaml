@@ -15,64 +15,58 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: source-test-scan-to-url
+  name: source-test-scan-to-url-helm
 spec:
   selectorMatchFields:
   - key: spec.params[?(@.name=="chart_name")]
     operator: Exists
   - key: spec.params[?(@.name=="chart_repo")]
     operator: Exists
+  selector:
+    apps.tanzu.vmware.com/has-tests: "true"
 
   params:
     - name: maven_repository_url
       value: #@ data.values.maven.repository.url
-    #@ if data.values.maven.repository.secret_name:
+    #@ if/end data.values.maven.repository.secret_name:
     - name: maven_repository_secret_name
       value: #@ data.values.maven.repository.secret_name
-    #@ end
+
     - name: gitops_branch
       default: #@ data.values.gitops.branch
     - name: gitops_user_name
-      default: #@ data.values.gitops.user_name
+      default: #@ data.values.gitops.username
     - name: gitops_user_email
-      default: #@ data.values.gitops.user_email
+      default: #@ data.values.gitops.email
     - name: gitops_commit_message
       default: #@ data.values.gitops.commit_message
     - name: gitops_ssh_secret
       default: #@ data.values.gitops.ssh_secret
-    #@ if data.values.gitops.repository_prefix:
+    #@ if/end data.values.gitops.repository_prefix:
     - name: gitops_repository_prefix
       default: #@ data.values.gitops.repository_prefix
-    #@ end
-    #@ if data.values.gitops.server_address:
+    #@ if/end data.values.gitops.server_address:
     - name: gitops_server_address
       default: #@ data.values.gitops.server_address
-    #@ end
-    #@ if data.values.gitops.repository_owner:
+    #@ if/end data.values.gitops.repository_owner:
     - name: gitops_repository_owner
       default: #@ data.values.gitops.repository_owner
-    #@ end
-    #@ if data.values.gitops.repository_name:
+    #@ if/end data.values.gitops.repository_name:
     - name: gitops_repository_name
       default: #@ data.values.gitops.repository_name
-    #@ end
     #@ if data.values.gitops.commit_strategy == "pull_request":
-    #@ if data.values.gitops.pull_request.server_kind:
+    #@ if/end data.values.gitops.pull_request.server_kind:
     - name: gitops_server_kind
       default: #@ data.values.gitops.pull_request.server_kind
-    #@ end
-    #@ if "commit_branch" in data.values.gitops.pull_request:
+    #@ if/end "commit_branch" in data.values.gitops.pull_request:
     - name: gitops_commit_branch
       default: #@ data.values.gitops.pull_request.commit_branch
-    #@ end
-    #@ if data.values.gitops.pull_request.pull_request_title:
+    #@ if/end data.values.gitops.pull_request.pull_request_title:
     - name: gitops_pull_request_title
       default: #@ data.values.gitops.pull_request.pull_request_title
-    #@ end
-    #@ if data.values.gitops.pull_request.pull_request_body:
+    #@ if/end data.values.gitops.pull_request.pull_request_body:
     - name: gitops_pull_request_body
       default: #@ data.values.gitops.pull_request.pull_request_body
-    #@ end
     #@ end
 
   resources:
@@ -82,19 +76,32 @@ spec:
       name: source-template
     params:
       - name: serviceAccount
-        value: #@ data.values.service_account
+        default: #@ data.values.service_account
       - name: gitImplementation
-        value: #@ data.values.git_implementation
+        default: #@ data.values.git_implementation
 
-  - name: deliverable
+  - name: source-tester
     templateRef:
-      kind: ClusterTemplate
-      name: deliverable-template
-    params:
-      - name: registry
-        value: #@ data.values.registry
+      kind: ClusterSourceTemplate
+      name: testing-pipeline
+    sources:
+    - resource: source-provider
+      name: source
 
-  - name: image-builder
+  - name: source-scanner
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-scanner-template
+    params:
+      - name: scanning_source_policy
+        default: #@ data.values.scanning.source.policy
+      - name: scanning_source_template
+        default: #@ data.values.scanning.source.template
+    sources:
+      - resource: source-tester
+        name: source
+
+  - name: image-provider
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -110,7 +117,7 @@ spec:
                 operator: Exists
     params:
       - name: serviceAccount
-        value: #@ data.values.service_account
+        default: #@ data.values.service_account
       - name: registry
         value: #@ data.values.registry
       - name: clusterBuilder
@@ -122,27 +129,29 @@ spec:
       - name: docker_build_extra_args
         default: []
     sources:
-      - resource: source-provider
+      - resource: source-scanner
         name: source
+
+  - name: image-scanner
+    templateRef:
+      kind: ClusterImageTemplate
+      name: image-scanner-template
+    params:
+      - name: scanning_image_policy
+        default: #@ data.values.scanning.image.policy
+      - name: scanning_image_template
+        default: #@ data.values.scanning.image.template
+    images:
+      - resource: image-provider
+        name: image
 
   - name: config-provider
     templateRef:
       kind: ClusterConfigTemplate
-      name: convention-template
-    params:
-      - name: serviceAccount
-        value: #@ data.values.service_account
-    images:
-    - resource: image-builder
-      name: image
-
-  - name: app-config
-    templateRef:
-      kind: ClusterConfigTemplate
       name: config-template-helm
-    configs:
-      - resource: config-provider
-        name: config
+    images:
+    - resource: image-scanner
+      name: image
 
   - name: config-writer
     templateRef:
@@ -150,9 +159,19 @@ spec:
       name: #@ config_writer()
     params:
       - name: serviceAccount
-        value: #@ data.values.service_account
+        default: #@ data.values.service_account
       - name: registry
         value: #@ data.values.registry
     configs:
-      - resource: app-config
+      - resource: config-provider
         name: config
+
+  - name: deliverable
+    templateRef:
+      kind: ClusterTemplate
+      name: #@ "external-deliverable-template" if data.values.external_delivery else "deliverable-template"
+    params:
+      - name: registry
+        value: #@ data.values.registry
+      - name: gitImplementation
+        default: #@ data.values.git_implementation

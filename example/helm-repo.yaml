@@ -2,8 +2,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
-  name: demo-repo
-  namespace: default
+  name: timwang-github
+  namespace: tap-sit
 spec:
   interval: 5m0s
-  url: https://vrabbi-tap.github.io/helm-supply-chain/
+  url:  https://timwangvmw.github.io/helm-repo/

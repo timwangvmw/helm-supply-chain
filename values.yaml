@@ -1,9 +1,30 @@
 #@data/values
 ---
 registry:
-  server:
-  repository:
-  ca_cert_data: ""
+  server: "harbor.lab.tw"
+  repository: "tap-ap"
+  ca_cert_data: |
+    -----BEGIN CERTIFICATE-----
+    MIIDfTCCAmWgAwIBAgIJAIigBQPqY7j0MA0GCSqGSIb3DQEBCwUAMFUxCzAJBgNV
+    BAYTAlRXMQ8wDQYDVQQHDAZUYWlwZWkxDzANBgNVBAoMBmxhYiBDQTEMMAoGA1UE
+    CwwDbGFiMRYwFAYDVQQDDA1oYXJib3IubGFiLnR3MB4XDTIyMDkyMzA0NDgzNVoX
+    DTQyMDkxODA0NDgzNVowVTELMAkGA1UEBhMCVFcxDzANBgNVBAcMBlRhaXBlaTEP
+    MA0GA1UECgwGbGFiIENBMQwwCgYDVQQLDANsYWIxFjAUBgNVBAMMDWhhcmJvci5s
+    YWIudHcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLbx1PsdAN4GxM
+    7CHLpzgWDItX4Wb2aWVLdyi/mbpjUxypx4/I3i7dSJtld6KA2t/CviA+PqyIOQXX
+    wiAhES8IZR1xQ+/ipyHmz0wLDlY/L6NRHPfELsjAhfCUNK3cxu28K9RcDch33Omm
+    7K7lOvg1VgxS2pHQ2qk+pERJKoosa6DKrMHpXMUVFH7h1lTI36Cr/59jTLJ+AMgC
+    L+juSybG99xMiE7SFzBz9ezQBF7m6ox40K3B2tUZUGfQIka3bcy33+Sm11pd/pKF
+    XgEaV//3egAJcMZ+VYgEZY4ZNc5p4jn4q9LZ2ys15WEHkxRBoPwByD0cihjtSiAM
+    1IdRYon7AgMBAAGjUDBOMB0GA1UdDgQWBBT79HKPNQQlFpqiiE0nflIuOa6pxzAf
+    BgNVHSMEGDAWgBT79HKPNQQlFpqiiE0nflIuOa6pxzAMBgNVHRMEBTADAQH/MA0G
+    CSqGSIb3DQEBCwUAA4IBAQBC3rET4JIF4czl/iOIjZfA4lOhNvnTn9DlXLU5PgrR
+    aldXliMr4U/TuFvoCklIvTf8A27+qt6KISm0lA7a4Q7szvZ1AkgkB7JJnh1lnF0d
+    HOC2L4tMnFcmgbfS6VCnk9vYHYYLhC1T7b52IV0CJZvXf42kmeS+ZSM5pHJNYLw0
+    om1WYQcBl0wJMJZCgQdLK08mPGd3RYrTRYpDiN/0zsyCPhq6FJN+jPNAHEX/cqVv
+    eppqaJtn3n/7asjWB3GGx+tf8jNREa1FCV+KUj5wITmyke2h8ttavcBTfP0w8B7L
+    bgrkaT2vhqI8pnBsa3Fia8QSStT/Z/IJVlxuuWTsTUwL
+    -----END CERTIFICATE-----
 
 maven:
   repository:
@@ -12,21 +33,30 @@ maven:
 
 gitops:
   repository_prefix:
-  branch: main
-  user_name: supplychain
-  user_email: supplychain
+  branch: dev
+  username: supplychain
+  email: supplychain
   commit_message: supplychain@cluster.local
-  ssh_secret: git-ssh
+  ssh_secret: github-workload-token
   commit_strategy: direct
-  server_address:
-  repository_owner:
-  repository_name:
+  server_address: https://github.com/
+  repository_owner: timwangvmw
+  repository_name: k8s_yaml_v1r4
   pull_request:
     server_kind:
     commit_branch: ""
     pull_request_title:
     pull_request_body:
 
+scanning:
+  source:
+    policy: scan-policy
+    template: blob-source-scan-template
+  image:
+    policy: scan-policy
+    template: private-image-scan-template
+
 cluster_builder: default
-service_account: default
+service_account: workload-sa
 git_implementation: go-git
+external_delivery: false
